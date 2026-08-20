@@ -1,0 +1,21 @@
+{
+  "listings": [
+    {
+      "external_id": "example-001",
+      "url": "https://example.invalid/listing/example-001",
+      "published_at": "2026-08-15T12:00:00Z",
+      "operation": "rent",
+      "property_type": "apartment",
+      "title": "Example apartment",
+      "country_code": "UY",
+      "city": "Montevideo",
+      "neighborhood": "Pocitos",
+      "address": "Example 1234",
+      "price": 1200,
+      "currency": "USD",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "area_total_m2": 70
+    }
+  ]
+}

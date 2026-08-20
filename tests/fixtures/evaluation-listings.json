@@ -1,0 +1,41 @@
+[
+  {
+    "id": "evaluation-pass",
+    "operation": "rent",
+    "property_type": "apartment",
+    "title": "Two bedrooms in Pocitos",
+    "city": "Montevideo",
+    "neighborhood": "Pocitos",
+    "price": 1200,
+    "currency": "USD",
+    "bedrooms": 2,
+    "bathrooms": 1,
+    "area_total_m2": 65,
+    "url": "https://example.test/evaluation-pass",
+    "published_at": "2026-08-15T12:00:00.000Z"
+  },
+  {
+    "id": "evaluation-fail",
+    "operation": "sale",
+    "property_type": "apartment",
+    "city": "Montevideo",
+    "neighborhood": "Centro",
+    "price": 220000,
+    "currency": "USD",
+    "bedrooms": 1,
+    "parking_spaces": 0,
+    "url": "https://example.test/evaluation-fail"
+  },
+  {
+    "id": "evaluation-unknown",
+    "operation": "rent",
+    "property_type": "apartment",
+    "city": "Montevideo",
+    "neighborhood": "Cordon",
+    "price": "consult",
+    "currency": "USD",
+    "bedrooms": 2,
+    "parking_spaces": 1,
+    "url": "https://example.test/evaluation-unknown"
+  }
+]

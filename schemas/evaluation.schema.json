@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://home-ops.local/schemas/evaluation.schema.json",
+  "title": "HomeOps deterministic listing evaluation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "evaluated_at", "profile", "listing", "eligibility",
+    "hard_filters", "score", "matches", "trade_offs", "missing_data",
+    "red_flags", "assumptions", "questions", "recommendation"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "evaluated_at": { "type": "string", "format": "date-time" },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "name", "path", "stale_after_days", "recommendation"],
+      "properties": {
+        "schema_version": { "const": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "minLength": 1 },
+        "stale_after_days": { "type": "integer", "minimum": 0 },
+        "recommendation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["visit_score", "prioritize_score"],
+          "properties": {
+            "discard_below_score": { "type": "number", "minimum": 0, "maximum": 100 },
+            "visit_score": { "type": "number" },
+            "prioritize_score": { "type": "number" }
+          }
+        }
+      }
+    },
+    "listing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "inventory_path", "provider", "external_id", "source_url"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^lst_[a-f0-9]{16}$" },
+        "inventory_path": { "type": "string", "minLength": 1 },
+        "provider": { "type": "string", "minLength": 1 },
+        "external_id": { "type": ["string", "null"] },
+        "source_url": { "type": ["string", "null"], "format": "uri", "pattern": "^https?://" }
+      }
+    },
+    "eligibility": { "enum": ["eligible", "ineligible", "indeterminate"] },
+    "hard_filters": { "type": "array", "items": { "$ref": "#/$defs/result" } },
+    "score": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["earned", "maximum", "percentage", "evidence_weight", "coverage_percentage", "criteria"],
+      "properties": {
+        "earned": { "type": "number", "minimum": 0 },
+        "maximum": { "type": "number", "minimum": 0 },
+        "percentage": { "type": "number", "minimum": 0, "maximum": 100 },
+        "evidence_weight": { "type": "number", "minimum": 0 },
+        "coverage_percentage": { "type": "number", "minimum": 0, "maximum": 100 },
+        "maximum_possible_earned": { "type": "number", "minimum": 0 },
+        "maximum_possible_percentage": { "type": "number", "minimum": 0, "maximum": 100 },
+        "criteria": { "type": "array", "items": { "$ref": "#/$defs/weightedResult" } }
+      }
+    },
+    "matches": { "$ref": "#/$defs/messages" },
+    "trade_offs": { "$ref": "#/$defs/messages" },
+    "missing_data": { "$ref": "#/$defs/messages" },
+    "red_flags": { "$ref": "#/$defs/messages" },
+    "assumptions": { "$ref": "#/$defs/messages" },
+    "questions": { "$ref": "#/$defs/messages" },
+    "recommendation": { "enum": ["discard", "monitor", "visit", "prioritize"] }
+  },
+  "$defs": {
+    "messages": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "field", "operator", "expected", "actual", "provenance", "expected_currency", "actual_currency", "actual_currency_provenance", "allow_inferred", "outcome", "reason"],
+      "properties": {
+        "id": { "type": "string" },
+        "label": { "type": "string" },
+        "field": { "type": "string" },
+        "operator": { "type": "string" },
+        "expected": {},
+        "actual": {},
+        "provenance": { "enum": ["verified", "reported", "inferred", "unknown"] },
+        "expected_currency": { "type": ["string", "null"] },
+        "actual_currency": { "type": ["string", "null"] },
+        "actual_currency_provenance": { "enum": ["verified", "reported", "inferred", "unknown"] },
+        "allow_inferred": { "type": "boolean" },
+        "outcome": { "enum": ["pass", "fail", "unknown"] },
+        "reason": { "type": "string", "minLength": 1 },
+        "weight": { "type": "number", "exclusiveMinimum": 0 },
+        "earned": { "type": "number", "minimum": 0 }
+      }
+    },
+    "weightedResult": {
+      "allOf": [
+        { "$ref": "#/$defs/result" },
+        {
+          "type": "object",
+          "required": ["weight", "earned"],
+          "properties": {
+            "weight": { "type": "number", "exclusiveMinimum": 0 },
+            "earned": { "type": "number", "minimum": 0 }
+          }
+        }
+      ]
+    }
+  }
+}

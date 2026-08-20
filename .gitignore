@@ -1,0 +1,12 @@
+node_modules/
+.DS_Store
+.idea/
+.playwright-mcp/
+
+# User-owned local configuration and data
+config/*
+!config/.gitkeep
+data/*
+!data/.gitkeep
+reports/*
+!reports/.gitkeep

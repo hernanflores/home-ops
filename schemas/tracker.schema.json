@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://home-ops.local/schemas/tracker.schema.json",
+  "title": "HomeOps canonical tracker record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "listing_id", "state", "availability", "created_at", "updated_at", "events"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "listing_id": { "type": "string", "pattern": "^lst_[a-f0-9]{16}$" },
+    "state": { "$ref": "#/$defs/state" },
+    "availability": { "$ref": "#/$defs/availability" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "events": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/event" } }
+  },
+  "$defs": {
+    "state": { "enum": ["watching", "shortlisted", "contacted", "visited", "archived"] },
+    "availability": { "enum": ["unknown", "available", "reserved", "unavailable", "removed"] },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "recorded_at", "payload"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^evt_[a-f0-9]{16}$" },
+        "type": { "enum": ["tracking_started", "state_changed", "availability_changed", "note_added", "question_added", "question_answered", "visit_recorded", "decision_recorded"] },
+        "recorded_at": { "type": "string", "format": "date-time" },
+        "payload": { "type": "object" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "type": { "const": "tracking_started" } }, "required": ["type"] },
+          "then": { "properties": { "payload": {
+            "type": "object", "additionalProperties": false,
+            "required": ["state", "availability"],
+            "properties": {
+              "state": { "const": "watching" },
+              "availability": { "const": "unknown" }
+            }
+          } } }
+        },
+        {
+          "if": { "properties": { "type": { "const": "state_changed" } }, "required": ["type"] },
+          "then": { "properties": { "payload": {
+            "type": "object", "additionalProperties": false,
+            "required": ["from", "to"],
+            "properties": { "from": { "$ref": "#/$defs/state" }, "to": { "$ref": "#/$defs/state" } }
+          } } }
+        },
+        {
+          "if": { "properties": { "type": { "const": "availability_changed" } }, "required": ["type"] },
+          "then": { "properties": { "payload": {
+            "type": "object", "additionalProperties": false,
+            "required": ["from", "to"],
+            "properties": { "from": { "$ref": "#/$defs/availability" }, "to": { "$ref": "#/$defs/availability" } }
+          } } }
+        },
+        {
+          "if": { "properties": { "type": { "enum": ["note_added", "question_added"] } }, "required": ["type"] },
+          "then": { "properties": { "payload": {
+            "type": "object", "additionalProperties": false,
+            "required": ["text"],
+            "properties": { "text": { "type": "string", "minLength": 1, "pattern": "\\S" } }
+          } } }
+        },
+        {
+          "if": { "properties": { "type": { "const": "question_answered" } }, "required": ["type"] },
+          "then": { "properties": { "payload": {
+            "type": "object", "additionalProperties": false,
+            "required": ["question_id", "text"],
+            "properties": {
+              "question_id": { "type": "string", "pattern": "^evt_[a-f0-9]{16}$" },
+              "text": { "type": "string", "minLength": 1, "pattern": "\\S" }
+            }
+          } } }
+        },
+        {
+          "if": { "properties": { "type": { "const": "visit_recorded" } }, "required": ["type"] },
+          "then": { "properties": { "payload": {
+            "type": "object", "additionalProperties": false,
+            "required": ["visited_at", "notes"],
+            "properties": {
+              "visited_at": { "type": "string", "format": "date-time" },
+              "notes": { "type": ["string", "null"], "minLength": 1, "pattern": "\\S" }
+            }
+          } } }
+        },
+        {
+          "if": { "properties": { "type": { "const": "decision_recorded" } }, "required": ["type"] },
+          "then": { "properties": { "payload": {
+            "type": "object", "additionalProperties": false,
+            "required": ["decision", "reason"],
+            "properties": {
+              "decision": { "type": "string", "minLength": 1, "pattern": "\\S" },
+              "reason": { "type": ["string", "null"], "minLength": 1, "pattern": "\\S" }
+            }
+          } } }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "listings": [
+    {
+      "id": "a-100",
+      "url": "https://example.test/a-100?utm_source=mail",
+      "published_at": "2026-08-15T12:00:00Z",
+      "operation": "alquiler",
+      "property_type": "apartamento",
+      "title": "Apartamento luminoso en Pocitos",
+      "description": "Dos dormitorios y terraza.",
+      "city": "Montevideo",
+      "neighborhood": "Pocitos",
+      "address": "Av. Brasil 1234",
+      "price": "USD 1.200",
+      "currency": "USD",
+      "gastos_comunes": "UYU 8.500",
+      "expenses_currency": "UYU",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "area_total_m2": 70,
+      "area_covered_m2": 65,
+      "parking_spaces": 1
+    },
+    {
+      "id": "a-200",
+      "published_at": "2026-05-01T12:00:00Z",
+      "operation": "venta",
+      "property_type": "casa",
+      "title": "Casa para reciclar",
+      "neighborhood": "Parque Rodo",
+      "price": 220000,
+      "currency": "USD",
+      "bedrooms": 3,
+      "area_total_m2": 140
+    }
+  ]
+}

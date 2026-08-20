@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://home-ops.local/schemas/market-observation.schema.json",
+  "title": "HomeOps canonical market observation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "evidence_type", "observed_at", "effective_at", "date_basis", "listing_id", "source", "property", "provenance", "duplicate", "verification"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "id": { "type": "string", "pattern": "^obs_[a-f0-9]{16}$" },
+    "evidence_type": { "enum": ["listing_ask", "verified_closed_sale"] },
+    "observed_at": { "type": "string", "format": "date-time" },
+    "effective_at": { "type": ["string", "null"], "format": "date-time" },
+    "date_basis": { "enum": ["published_at", "observed_at", "verified_closed_at"] },
+    "listing_id": { "type": ["string", "null"], "pattern": "^lst_[a-f0-9]{16}$" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "external_id", "url", "reference"],
+      "properties": {
+        "provider": { "type": "string", "minLength": 1 },
+        "external_id": { "type": ["string", "null"] },
+        "url": { "type": ["string", "null"], "format": "uri", "pattern": "^https?://" },
+        "reference": { "type": ["string", "null"], "minLength": 1 }
+      }
+    },
+    "property": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operation", "property_type", "location", "pricing", "features", "condition"],
+      "properties": {
+        "operation": { "enum": ["rent", "sale", "unknown"] },
+        "property_type": { "enum": ["apartment", "house", "land", "commercial", "other", "unknown"] },
+        "location": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["country_code", "city", "neighborhood"],
+          "properties": {
+            "country_code": { "type": ["string", "null"], "pattern": "^[A-Z]{2}$" },
+            "city": { "type": ["string", "null"] },
+            "neighborhood": { "type": ["string", "null"] }
+          }
+        },
+        "pricing": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["price", "currency"],
+          "properties": {
+            "price": { "type": ["number", "null"], "minimum": 0 },
+            "currency": { "type": ["string", "null"], "pattern": "^[A-Z]{3}$" }
+          }
+        },
+        "features": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["area_total_m2", "area_covered_m2"],
+          "properties": {
+            "area_total_m2": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+            "area_covered_m2": { "type": ["number", "null"], "exclusiveMinimum": 0 }
+          }
+        },
+        "condition": { "enum": ["new", "renovated", "good", "fair", "poor", "unknown"] }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": { "enum": ["verified", "reported", "inferred", "unknown"] }
+    },
+    "duplicate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["group_id", "confidence"],
+      "properties": {
+        "group_id": { "type": ["string", "null"] },
+        "confidence": { "enum": ["none", "medium", "high"] }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reference", "verified_at"],
+      "properties": {
+        "status": { "enum": ["source_listing", "verified"] },
+        "reference": { "type": ["string", "null"], "minLength": 1 },
+        "verified_at": { "type": ["string", "null"], "format": "date-time" }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "evidence_type": { "const": "listing_ask" } }, "required": ["evidence_type"] },
+      "then": {
+        "properties": {
+          "date_basis": { "const": "observed_at" },
+          "effective_at": { "type": "string", "format": "date-time" },
+          "listing_id": { "type": "string", "pattern": "^lst_[a-f0-9]{16}$" },
+          "verification": {
+            "type": "object",
+            "properties": {
+              "status": { "const": "source_listing" },
+              "reference": { "type": "null" },
+              "verified_at": { "type": "null" }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "evidence_type": { "const": "verified_closed_sale" } }, "required": ["evidence_type"] },
+      "then": {
+        "properties": {
+          "date_basis": { "const": "verified_closed_at" },
+          "effective_at": { "type": "string", "format": "date-time" },
+          "property": {
+            "type": "object",
+            "properties": {
+              "operation": { "const": "sale" },
+              "property_type": { "enum": ["apartment", "house", "land", "commercial", "other"] },
+              "pricing": {
+                "type": "object",
+                "properties": {
+                  "price": { "type": "number", "exclusiveMinimum": 0 },
+                  "currency": { "type": "string", "pattern": "^[A-Z]{3}$" }
+                }
+              }
+            }
+          },
+          "verification": {
+            "type": "object",
+            "properties": {
+              "status": { "const": "verified" },
+              "reference": { "type": "string", "minLength": 1 },
+              "verified_at": { "type": "string", "format": "date-time" }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

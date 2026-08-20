@@ -1,0 +1,28 @@
+{
+  "name": "home-ops",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local-first property search and evaluation workflows",
+  "scripts": {
+    "compare": "node scripts/compare.mjs",
+    "evaluate": "node scripts/evaluate.mjs",
+    "market": "node scripts/market.mjs",
+    "scan": "node scripts/scan.mjs",
+    "tracker": "node scripts/tracker.mjs",
+    "tracker:check": "node scripts/tracker-check.mjs",
+    "valuation": "node scripts/valuation.mjs",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "fast-xml-parser": "^5.11.0",
+    "parse5": "^7.3.0",
+    "undici": "^7.29.0",
+    "yaml": "^2.8.1"
+  }
+}

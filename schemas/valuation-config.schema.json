@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://home-ops.local/schemas/valuation-config.schema.json",
+  "title": "HomeOps valuation configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "minimum_comparables", "quantiles", "freshness_days", "allow_inferred", "area_basis", "confidence"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "minimum_comparables": { "type": "integer", "minimum": 5 },
+    "quantiles": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["low", "central", "high"],
+      "properties": {
+        "low": { "type": "number", "minimum": 0, "maximum": 1 },
+        "central": { "type": "number", "minimum": 0, "maximum": 1 },
+        "high": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "freshness_days": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rent", "sale"],
+      "properties": {
+        "rent": { "type": "integer", "minimum": 0 },
+        "sale": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "allow_inferred": { "type": "boolean" },
+    "area_basis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["apartment", "house", "land", "commercial", "other"],
+      "properties": {
+        "apartment": { "$ref": "#/$defs/areaRule" },
+        "house": { "$ref": "#/$defs/areaRule" },
+        "land": { "$ref": "#/$defs/areaRule" },
+        "commercial": { "$ref": "#/$defs/areaRule" },
+        "other": { "$ref": "#/$defs/areaRule" }
+      }
+    },
+    "confidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["medium_count", "high_count", "maximum_iqr_to_median"],
+      "properties": {
+        "medium_count": { "type": "integer", "minimum": 3 },
+        "high_count": { "type": "integer", "minimum": 3 },
+        "maximum_iqr_to_median": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "areaRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary", "fallback"],
+      "properties": {
+        "primary": { "enum": ["area_total_m2", "area_covered_m2"] },
+        "fallback": { "type": ["string", "null"], "enum": ["area_total_m2", "area_covered_m2", null] }
+      }
+    }
+  }
+}

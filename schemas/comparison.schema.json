@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://home-ops.local/schemas/comparison.schema.json",
+  "title": "HomeOps listing comparison",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "generated_at", "inventory_path", "tracker_path", "profile_path", "listings"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "inventory_path": { "type": "string", "minLength": 1 },
+    "tracker_path": { "type": "string", "minLength": 1 },
+    "profile_path": { "type": "string", "minLength": 1 },
+    "listings": { "type": "array", "minItems": 2, "items": { "$ref": "#/$defs/listing" } }
+  },
+  "$defs": {
+    "messages": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "listing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "source_url", "tracker", "property", "provenance", "evaluation", "duplicate"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^lst_[a-f0-9]{16}$" },
+        "title": { "type": ["string", "null"] },
+        "source_url": { "type": ["string", "null"], "format": "uri", "pattern": "^https?://" },
+        "tracker": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["state", "availability"],
+          "properties": {
+            "state": { "enum": ["watching", "shortlisted", "contacted", "visited", "archived"] },
+            "availability": { "enum": ["unknown", "available", "reserved", "unavailable", "removed"] }
+          }
+        },
+        "property": {
+          "type": "object", "additionalProperties": false,
+          "required": ["operation", "property_type", "location", "pricing", "features"],
+          "properties": {
+            "operation": { "type": "string" },
+            "property_type": { "type": "string" },
+            "location": {
+              "type": "object", "additionalProperties": false,
+              "required": ["city", "neighborhood"],
+              "properties": { "city": { "type": ["string", "null"] }, "neighborhood": { "type": ["string", "null"] } }
+            },
+            "pricing": {
+              "type": "object", "additionalProperties": false,
+              "required": ["price", "currency", "expenses", "expenses_currency"],
+              "properties": {
+                "price": { "type": ["number", "null"] }, "currency": { "type": ["string", "null"] },
+                "expenses": { "type": ["number", "null"] }, "expenses_currency": { "type": ["string", "null"] }
+              }
+            },
+            "features": {
+              "type": "object", "additionalProperties": false,
+              "required": ["bedrooms", "bathrooms", "area_total_m2", "parking_spaces"],
+              "properties": {
+                "bedrooms": { "type": ["number", "null"] }, "bathrooms": { "type": ["number", "null"] },
+                "area_total_m2": { "type": ["number", "null"] }, "parking_spaces": { "type": ["number", "null"] }
+              }
+            }
+          }
+        },
+        "provenance": { "type": "object", "additionalProperties": { "enum": ["verified", "reported", "inferred", "unknown"] } },
+        "evaluation": {
+          "type": "object", "additionalProperties": false,
+          "required": ["eligibility", "score_percentage", "maximum_possible_percentage", "coverage_percentage", "recommendation", "trade_offs", "missing_data", "red_flags"],
+          "properties": {
+            "eligibility": { "enum": ["eligible", "ineligible", "indeterminate"] },
+            "score_percentage": { "type": "number", "minimum": 0, "maximum": 100 },
+            "maximum_possible_percentage": { "type": "number", "minimum": 0, "maximum": 100 },
+            "coverage_percentage": { "type": "number", "minimum": 0, "maximum": 100 },
+            "recommendation": { "enum": ["discard", "monitor", "visit", "prioritize"] },
+            "trade_offs": { "$ref": "#/$defs/messages" },
+            "missing_data": { "$ref": "#/$defs/messages" },
+            "red_flags": { "$ref": "#/$defs/messages" }
+          }
+        },
+        "duplicate": {
+          "type": "object", "additionalProperties": false,
+          "required": ["group_id", "confidence"],
+          "properties": { "group_id": { "type": ["string", "null"] }, "confidence": { "enum": ["none", "medium", "high"] } }
+        }
+      }
+    }
+  }
+}

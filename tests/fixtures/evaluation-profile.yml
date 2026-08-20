@@ -1,0 +1,37 @@
+schema_version: 1
+name: Test rental profile
+stale_after_days: 45
+hard_filters:
+  - id: rental
+    label: Offered for rent
+    field: property.operation
+    operator: equals
+    value: rent
+  - id: budget
+    label: Within USD budget
+    field: property.pricing.price
+    operator: at_most
+    value: 1500
+    currency: USD
+weighted_criteria:
+  - id: neighborhood
+    label: Preferred neighborhood
+    field: property.location.neighborhood
+    operator: one_of
+    value: [Pocitos, Cordon]
+    weight: 40
+  - id: bedrooms
+    label: At least two bedrooms
+    field: property.features.bedrooms
+    operator: at_least
+    value: 2
+    weight: 40
+  - id: parking
+    label: Has parking
+    field: property.features.parking_spaces
+    operator: at_least
+    value: 1
+    weight: 20
+recommendation:
+  visit_score: 60
+  prioritize_score: 80

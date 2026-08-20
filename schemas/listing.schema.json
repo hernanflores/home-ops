@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://home-ops.local/schemas/listing.schema.json",
+  "title": "HomeOps canonical listing",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "id", "status", "first_seen_at", "last_seen_at",
+    "last_changed_at", "freshness", "source", "property", "provenance",
+    "unknown_fields", "duplicate", "history", "original"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "id": { "type": "string", "pattern": "^lst_[a-f0-9]{16}$" },
+    "status": { "enum": ["new", "updated", "unchanged"] },
+    "first_seen_at": { "type": "string", "format": "date-time" },
+    "last_seen_at": { "type": "string", "format": "date-time" },
+    "last_changed_at": { "type": "string", "format": "date-time" },
+    "freshness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "basis", "age_days"],
+      "properties": {
+        "state": { "enum": ["fresh", "potentially_stale", "unknown"] },
+        "basis": { "enum": ["published_at", "retrieved_at", "unknown"] },
+        "age_days": { "type": ["integer", "null"], "minimum": 0 }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "external_id", "url", "retrieved_at", "published_at"],
+      "properties": {
+        "provider": { "type": "string", "minLength": 1 },
+        "external_id": { "type": ["string", "null"] },
+        "url": { "type": ["string", "null"], "format": "uri", "pattern": "^https?://" },
+        "retrieved_at": { "type": "string", "format": "date-time" },
+        "published_at": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "property": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operation", "property_type", "title", "description", "location", "pricing", "features"],
+      "properties": {
+        "operation": { "enum": ["rent", "sale", "unknown"] },
+        "property_type": { "enum": ["apartment", "house", "land", "commercial", "other", "unknown"] },
+        "title": { "type": ["string", "null"] },
+        "description": { "type": ["string", "null"] },
+        "location": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["country_code", "admin_area", "city", "neighborhood", "address"],
+          "properties": {
+            "country_code": { "type": ["string", "null"], "pattern": "^[A-Z]{2}$" },
+            "admin_area": { "type": ["string", "null"] },
+            "city": { "type": ["string", "null"] },
+            "neighborhood": { "type": ["string", "null"] },
+            "address": { "type": ["string", "null"] }
+          }
+        },
+        "pricing": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["price", "currency", "expenses", "expenses_currency"],
+          "properties": {
+            "price": { "type": ["number", "null"], "minimum": 0 },
+            "currency": { "type": ["string", "null"], "pattern": "^[A-Z]{3}$" },
+            "expenses": { "type": ["number", "null"], "minimum": 0 },
+            "expenses_currency": { "type": ["string", "null"], "pattern": "^[A-Z]{3}$" }
+          }
+        },
+        "features": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["bedrooms", "bathrooms", "area_total_m2", "area_covered_m2", "parking_spaces"],
+          "properties": {
+            "bedrooms": { "type": ["number", "null"], "minimum": 0 },
+            "bathrooms": { "type": ["number", "null"], "minimum": 0 },
+            "area_total_m2": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+            "area_covered_m2": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+            "parking_spaces": { "type": ["number", "null"], "minimum": 0 }
+          }
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": { "enum": ["verified", "reported", "inferred", "unknown"] }
+    },
+    "unknown_fields": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "duplicate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["group_id", "confidence", "reasons"],
+      "properties": {
+        "group_id": { "type": ["string", "null"] },
+        "confidence": { "enum": ["none", "medium", "high"] },
+        "reasons": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["at", "changes"],
+        "properties": {
+          "at": { "type": "string", "format": "date-time" },
+          "changes": { "type": "object" }
+        }
+      }
+    },
+    "original": { "type": "object" }
+  }
+}

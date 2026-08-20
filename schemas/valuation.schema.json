@@ -1,0 +1,184 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://home-ops.local/schemas/valuation.schema.json",
+  "title": "HomeOps market valuation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "generated_at", "inventory_path", "observations_path", "config_path", "region_path", "subject", "method", "ranges", "assumptions", "limitations", "disclaimer"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "inventory_path": { "type": "string", "minLength": 1 },
+    "observations_path": { "type": "string", "minLength": 1 },
+    "config_path": { "type": "string", "minLength": 1 },
+    "region_path": { "type": "string", "minLength": 1 },
+    "subject": { "$ref": "#/$defs/subject" },
+    "method": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["geography", "currency", "statistic", "minimum_comparables", "outlier_removal", "quantiles", "freshness_days", "area_rule", "allow_inferred", "confidence_thresholds"],
+      "properties": {
+        "geography": { "const": "exact_normalized_neighborhood" },
+        "currency": { "const": "same_currency_only" },
+        "statistic": { "const": "median_price_per_m2_with_interquartile_range" },
+        "minimum_comparables": { "type": "integer", "minimum": 5 },
+        "outlier_removal": { "const": false },
+        "quantiles": {
+          "type": "object", "additionalProperties": false,
+          "required": ["low", "central", "high"],
+          "properties": { "low": { "type": "number" }, "central": { "type": "number" }, "high": { "type": "number" } }
+        },
+        "freshness_days": { "type": ["integer", "null"], "minimum": 0 },
+        "area_rule": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object", "additionalProperties": false,
+              "required": ["primary", "fallback"],
+              "properties": {
+                "primary": { "enum": ["area_total_m2", "area_covered_m2"] },
+                "fallback": { "type": ["string", "null"], "enum": ["area_total_m2", "area_covered_m2", null] }
+              }
+            }
+          ]
+        },
+        "allow_inferred": { "type": "boolean" },
+        "confidence_thresholds": {
+          "type": "object", "additionalProperties": false,
+          "required": ["medium_count", "high_count", "maximum_iqr_to_median"],
+          "properties": {
+            "medium_count": { "type": "integer" }, "high_count": { "type": "integer" },
+            "maximum_iqr_to_median": { "type": "number" }
+          }
+        }
+      }
+    },
+    "ranges": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 2,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/range" }
+    },
+    "assumptions": { "$ref": "#/$defs/messages" },
+    "limitations": { "$ref": "#/$defs/messages" },
+    "disclaimer": { "type": "string", "minLength": 1 }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "subject": { "type": "object", "properties": { "operation": { "const": "rent" } }, "required": ["operation"] } }, "required": ["subject"] },
+      "then": { "properties": { "ranges": { "type": "array", "minItems": 1, "maxItems": 1, "contains": { "type": "object", "properties": { "evidence_type": { "const": "listing_ask" } }, "required": ["evidence_type"] }, "minContains": 1, "maxContains": 1 } } }
+    },
+    {
+      "if": { "properties": { "subject": { "type": "object", "properties": { "operation": { "const": "sale" } }, "required": ["operation"] } }, "required": ["subject"] },
+      "then": { "properties": { "ranges": {
+        "type": "array",
+        "minItems": 2,
+        "maxItems": 2,
+        "allOf": [
+          { "contains": { "type": "object", "properties": { "evidence_type": { "const": "listing_ask" } }, "required": ["evidence_type"] }, "minContains": 1, "maxContains": 1 },
+          { "contains": { "type": "object", "properties": { "evidence_type": { "const": "verified_closed_sale" } }, "required": ["evidence_type"] }, "minContains": 1, "maxContains": 1 }
+        ]
+      } } }
+    }
+  ],
+  "$defs": {
+    "messages": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["listing_id", "source_url", "operation", "property_type", "country_code", "city", "neighborhood", "currency", "area_m2", "area_basis", "area_fallback", "area_provenance"],
+      "properties": {
+        "listing_id": { "type": "string", "pattern": "^lst_[a-f0-9]{16}$" },
+        "source_url": { "type": ["string", "null"], "format": "uri", "pattern": "^https?://" },
+        "operation": { "enum": ["rent", "sale", "unknown"] },
+        "property_type": { "enum": ["apartment", "house", "land", "commercial", "other", "unknown"] },
+        "country_code": { "type": ["string", "null"] },
+        "city": { "type": ["string", "null"] },
+        "neighborhood": { "type": ["string", "null"] },
+        "currency": { "type": ["string", "null"] },
+        "area_m2": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+        "area_basis": { "type": ["string", "null"], "enum": ["area_total_m2", "area_covered_m2", null] },
+        "area_fallback": { "type": "boolean" },
+        "area_provenance": { "enum": ["verified", "reported", "inferred", "unknown"] }
+      }
+    },
+    "range": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidence_type", "status", "currency", "eligible_count", "statistics", "estimate", "confidence", "included", "excluded"],
+      "properties": {
+        "evidence_type": { "enum": ["listing_ask", "verified_closed_sale"] },
+        "status": { "enum": ["estimated", "insufficient_evidence"] },
+        "currency": { "type": ["string", "null"] },
+        "eligible_count": { "type": "integer", "minimum": 0 },
+        "statistics": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/statistics" }] },
+        "estimate": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/estimate" }] },
+        "confidence": { "$ref": "#/$defs/confidence" },
+        "included": { "type": "array", "items": { "$ref": "#/$defs/comparable" } },
+        "excluded": { "type": "array", "items": { "$ref": "#/$defs/excluded" } }
+      }
+    },
+    "statistics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["low_price_per_m2", "central_price_per_m2", "high_price_per_m2"],
+      "properties": {
+        "low_price_per_m2": { "type": "number", "minimum": 0 },
+        "central_price_per_m2": { "type": "number", "minimum": 0 },
+        "high_price_per_m2": { "type": "number", "minimum": 0 }
+      }
+    },
+    "estimate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["low", "central", "high"],
+      "properties": {
+        "low": { "type": "number", "minimum": 0 },
+        "central": { "type": "number", "minimum": 0 },
+        "high": { "type": "number", "minimum": 0 }
+      }
+    },
+    "confidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "factors"],
+      "properties": {
+        "label": { "enum": ["insufficient", "low", "medium", "high"] },
+        "factors": { "$ref": "#/$defs/messages" }
+      }
+    },
+    "comparable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["observation_id", "listing_id", "source_url", "effective_at", "age_days", "price", "currency", "area_m2", "area_basis", "area_fallback", "area_provenance", "price_per_m2", "duplicate_group"],
+      "properties": {
+        "observation_id": { "type": "string", "pattern": "^obs_[a-f0-9]{16}$" },
+        "listing_id": { "type": ["string", "null"] },
+        "source_url": { "type": ["string", "null"], "format": "uri", "pattern": "^https?://" },
+        "effective_at": { "type": ["string", "null"], "format": "date-time" },
+        "age_days": { "type": "integer", "minimum": 0 },
+        "price": { "type": "number", "exclusiveMinimum": 0 },
+        "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+        "area_m2": { "type": "number", "exclusiveMinimum": 0 },
+        "area_basis": { "enum": ["area_total_m2", "area_covered_m2"] },
+        "area_fallback": { "type": "boolean" },
+        "area_provenance": { "enum": ["verified", "reported", "inferred"] },
+        "price_per_m2": { "type": "number", "exclusiveMinimum": 0 },
+        "duplicate_group": { "type": ["string", "null"] }
+      }
+    },
+    "excluded": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["observation_id", "listing_id", "source_url", "reason", "detail"],
+      "properties": {
+        "observation_id": { "type": "string", "pattern": "^obs_[a-f0-9]{16}$" },
+        "listing_id": { "type": ["string", "null"] },
+        "source_url": { "type": ["string", "null"], "format": "uri", "pattern": "^https?://" },
+        "reason": { "enum": ["subject_not_eligible", "subject_missing_area", "subject_record", "subject_duplicate", "superseded", "future_date", "stale", "operation_mismatch", "property_type_mismatch", "location_mismatch", "neighborhood_mismatch", "currency_mismatch", "missing_price", "invalid_price", "disallowed_provenance", "missing_area", "duplicate_group"] },
+        "detail": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

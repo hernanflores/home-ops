@@ -1,0 +1,87 @@
+region: uy-montevideo
+inventory: data/listings.jsonl
+reports_dir: reports
+cache_dir: data/cache/providers
+provider_runs: data/provider-runs.jsonl
+freshness:
+  stale_after_days: 45
+sources:
+  # Local imports remain supported through the shared provider runtime.
+  # - id: portal-export
+  #   type: local-csv
+  #   path: data/imports/listings.csv
+  #   provider: portal-export
+
+  # RSS/Atom feeds are zero-key. Enable one only after reviewing its terms.
+  # - id: agency-feed
+  #   type: rss
+  #   url: https://agency.example/properties.xml
+  #   provider: agency-name
+  #   compliance:
+  #     confirmed: true
+  #     terms_url: https://agency.example/terms
+  #     reviewed_at: 2026-08-19
+  #   defaults:
+  #     country_code: UY
+  #     city: Montevideo
+  #   mapping:
+  #     price: price
+  #     currency: currency
+  #     neighborhood: neighborhood
+
+  # InfoCasas personal-use scans target one declared CDE sitemap at a time.
+  # The terms do not expressly permit or prohibit this private local scope.
+  # Free-form descriptions are omitted because they may contain contact data.
+  # Never use commercially, republish, lower pacing, or bypass access controls.
+  # - id: infocasas-apartments-rent-montevideo
+  #   type: infocasas
+  #   url: https://www.infocasas.com.uy/cde-sitemap-listings-apartamento-en-alquiler-montevideo.xml
+  #   provider: infocasas
+  #   max_listings: 10
+  #   min_interval_ms: 5000
+  #   max_retries: 1
+  #   compliance:
+  #     confirmed: true
+  #     terms_url: https://www.infocasas.com.uy/informacion#terminos-y-condiciones
+  #     reviewed_at: 2026-08-20
+  #     mode: personal-use
+  #     automation_unspecified_acknowledged: true
+
+  # Houzez exposes a public WordPress property endpoint on some agency sites.
+  # Do not enable a site merely because the endpoint exists: review its terms.
+  # - id: agency-properties
+  #   type: houzez
+  #   url: https://agency.example/wp-json/wp/v2/properties
+  #   provider: agency-name
+  #   per_page: 50
+  #   max_pages: 10
+  #   compliance:
+  #     confirmed: true
+  #     terms_url: https://agency.example/terms
+  #     reviewed_at: 2026-08-19
+  #   defaults:
+  #     country_code: UY
+  #     city: Montevideo
+
+  # PROP is a single Montevideo agency. It publishes a privacy policy but no
+  # terms of use, so its reuse scope is undetermined. Enable it only for
+  # private personal use, and acknowledge that explicitly. Only category pages
+  # are requested; listing detail pages are never fetched.
+  # - id: prop-apartments-rent-montevideo
+  #   type: prop
+  #   url: https://prop.com.uy/propiedades/alquilar/apartamento
+  #   provider: prop
+  #   max_listings: 10
+  #   max_pages: 1
+  #   min_interval_ms: 5000
+  #   max_retries: 1
+  #   defaults:
+  #     country_code: UY
+  #     city: Montevideo
+  #   compliance:
+  #     confirmed: true
+  #     terms_url: https://prop.com.uy/legal/politica-de-privacidad
+  #     reviewed_at: 2026-08-20
+  #     mode: personal-use
+  #     automation_unspecified_acknowledged: true
+  #     terms_absent_acknowledged: true
