@@ -240,6 +240,24 @@ Evidence confidence (`insufficient`, `low`, `medium`, or `high`) describes the
 available comparable evidence. It is not a confidence interval or professional
 appraisal confidence. Every report includes a non-appraisal disclaimer.
 
+## Financing Scenarios
+
+Financing is an offline, read-only mode for educational simulations. Copy
+`templates/financing.example.yml` to the private `config/` directory, edit the
+hypothetical scenarios, and run:
+
+```bash
+npm run financing -- --config config/financing.yml
+npm run financing -- --config config/financing.yml --json
+```
+
+Each scenario reports the down payment, loan principal, fixed-rate monthly
+installment, total interest, recurring costs, total cash outlay, and any
+explicitly supplied currency-exposure conversion. Named scenarios can model
+different rates, terms, or down payments for comparison. Values are not live
+lender offers, affordability decisions, or financial advice; HomeOps does not
+contact lenders or submit financing applications.
+
 ## Network Sources
 
 Milestone 2 adds a shared provider runtime and four zero-key network adapters:
@@ -344,8 +362,8 @@ data immutability.
 ## Milestone Boundary
 
 This release supports local JSON/CSV, approved RSS/Atom and Houzez sources,
-deterministic private-profile evaluation, event-backed tracking, and
-deterministic comparable-based valuation, plus
+deterministic private-profile evaluation, event-backed tracking, deterministic
+comparable-based valuation, and educational financing scenarios, plus
 opt-in personal-use InfoCasas and PROP public-page providers. InfoCasas automation is
 not expressly authorized or prohibited for that private local scope, so its
 adapter enforces acknowledgement, pacing, bounds, no raw-page cache, and no

@@ -7,6 +7,7 @@
   "scripts": {
     "compare": "node scripts/compare.mjs",
     "evaluate": "node scripts/evaluate.mjs",
+    "financing": "node scripts/financing.mjs",
     "market": "node scripts/market.mjs",
     "scan": "node scripts/scan.mjs",
     "tracker": "node scripts/tracker.mjs",

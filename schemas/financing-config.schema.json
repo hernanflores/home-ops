@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://home-ops.local/schemas/financing-config.schema.json",
+  "title": "HomeOps financing configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "currency", "scenarios"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+    "scenarios": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/scenario" }
+    }
+  },
+  "$defs": {
+    "cost": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "monthly_amount"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "label": { "type": "string", "minLength": 1 },
+        "monthly_amount": { "type": "number", "minimum": 0 }
+      }
+    },
+    "exposure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["income_currency", "rate_income_per_loan"],
+      "properties": {
+        "income_currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+        "rate_income_per_loan": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "purchase_price", "down_payment_percent", "annual_interest_rate_percent", "term_months"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "label": { "type": "string", "minLength": 1 },
+        "purchase_price": { "type": "number", "exclusiveMinimum": 0 },
+        "down_payment_percent": { "type": "number", "minimum": 0, "maximum": 100 },
+        "annual_interest_rate_percent": { "type": "number", "minimum": 0 },
+        "term_months": { "type": "integer", "exclusiveMinimum": 0 },
+        "recurring_costs": { "type": "array", "items": { "$ref": "#/$defs/cost" } },
+        "currency_exposure": { "$ref": "#/$defs/exposure" }
+      }
+    }
+  }
+}

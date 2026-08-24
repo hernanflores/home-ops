@@ -34,3 +34,10 @@ valuation:
     medium_count: 8
     high_count: 15
     maximum_iqr_to_median: 0.5
+financing:
+  schema_version: 1
+  currency: USD
+  payment_frequency: monthly
+  assumptions:
+    - User-supplied rates and costs are hypothetical and not lender offers.
+    - No taxes, lender fees, or insurance are included unless entered in a scenario.

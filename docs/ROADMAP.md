@@ -216,25 +216,32 @@ disclaimers are covered by the 75-test offline suite.
 
 ## Milestone 6: Financing Scenarios
 
-**Status:** Proposed
+**Status:** Completed
 
 Provide deterministic educational financing simulations with explicit regional
 assumptions.
 
 ### Deliverables
 
-- [ ] Define financing assumptions and regional rule configuration.
-- [ ] Calculate down payment, installment, total cost, and recurring costs.
-- [ ] Add interest-rate and currency-exposure sensitivity scenarios.
-- [ ] Compare multiple hypothetical financing options.
-- [ ] Keep calculations independent from the AI reasoning layer.
-- [ ] Include educational-use and non-financial-advice disclaimers.
+- [x] Define financing assumptions and regional rule configuration.
+- [x] Calculate down payment, installment, total cost, and recurring costs.
+- [x] Add interest-rate and currency-exposure sensitivity scenarios.
+- [x] Compare multiple hypothetical financing options.
+- [x] Keep calculations independent from the AI reasoning layer.
+- [x] Include educational-use and non-financial-advice disclaimers.
 
 ### Exit Criteria
 
-- [ ] All calculations are covered by deterministic tests.
-- [ ] Every result exposes its inputs, formula assumptions, currency, and units.
-- [ ] No financing application or personal-data submission is initiated.
+- [x] All calculations are covered by deterministic tests.
+- [x] Every result exposes its inputs, formula assumptions, currency, and units.
+- [x] No financing application or personal-data submission is initiated.
+
+Acceptance evidence: on 2026-08-24 the financing mode added schema-validated
+YAML scenarios, fixed-rate monthly amortization, recurring-cost totals, named
+rate/term/down-payment comparisons, explicit supplied currency-exposure
+scenarios, JSON and Markdown reports, and a non-financial-advice disclaimer.
+The 79-test offline suite passed. The implementation is read-only and does not
+contact lenders or submit financing applications.
 
 ## Milestone 7: Regional and Plugin Expansion
 

@@ -1,0 +1,30 @@
+schema_version: 1
+currency: USD
+
+# Educational scenarios only. Values are user-supplied assumptions, not live
+# lender offers or financial advice.
+scenarios:
+  - id: baseline
+    label: Baseline 20-year loan
+    purchase_price: 150000
+    down_payment_percent: 20
+    annual_interest_rate_percent: 6.5
+    term_months: 240
+    recurring_costs:
+      - id: insurance
+        label: Property insurance
+        monthly_amount: 75
+      - id: hoa
+        label: Common expenses
+        monthly_amount: 150
+    # Optional: supplied rate to show a loan-currency payment in income currency.
+    # currency_exposure:
+    #   income_currency: UYU
+    #   rate_income_per_loan: 40
+
+  - id: higher-down-payment
+    label: Higher down payment
+    purchase_price: 150000
+    down_payment_percent: 35
+    annual_interest_rate_percent: 6.5
+    term_months: 240
