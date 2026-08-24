@@ -1,8 +1,8 @@
 # Mode: Tracker And Comparison
 
 Track canonical listings and compare active candidates through deterministic
-scripts. `data/tracker.jsonl` is canonical; `reports/tracker.md` and comparison
-reports are derived.
+scripts. `data/tracker.jsonl` is canonical; `reports/tracker.md`,
+`reports/tracker.html` and comparison reports are derived.
 
 ## User Interface
 
@@ -14,6 +14,7 @@ they do not need to invoke npm directly:
 /home-ops tracker sync
 /home-ops tracker shortlist <canonical-id>
 /home-ops tracker status
+/home-ops tracker view
 /home-ops compare <canonical-id> <canonical-id>
 /home-ops compare shortlist
 ```
@@ -38,7 +39,14 @@ normal agent-assisted use.
 6. Run `npm run tracker -- report` to rebuild `reports/tracker.md` for human
    review. The report has one summary row per listing and links to full current
    evaluations. Report generation must not modify canonical files.
-7. Run `npm run compare -- --listing <id> --listing <id>` or
+7. For `/home-ops tracker view`, run `npm run tracker -- report --html`, which
+   additionally writes `reports/tracker.html`: a plain-language reading copy of
+   the same data, with the list, one place in detail, and a budget-reality
+   chart. It is derived and read-only. It has no mutation path, contacts
+   nothing, converts no currency, and holds private search data, so say so
+   before anyone forwards it. Use `--html-output <path>` to write it elsewhere;
+   neither output may overwrite a canonical file or the profile.
+8. Run `npm run compare -- --listing <id> --listing <id>` or
    `npm run compare -- --shortlist`. Consume the deterministic comparison; do
    not invent rankings or currency conversions.
 
