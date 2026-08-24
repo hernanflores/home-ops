@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://home-ops.local/schemas/plugin-manifest.schema.json",
+  "title": "HomeOps plugin manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["manifest_version", "id", "name", "version", "api_version", "entrypoint", "capabilities", "permissions"],
+  "properties": {
+    "manifest_version": { "const": 1 },
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "name": { "type": "string", "minLength": 1 },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "api_version": { "const": 1 },
+    "entrypoint": { "type": "string", "pattern": "^[^/].*" },
+    "capabilities": {
+      "type": "array", "uniqueItems": true,
+      "items": { "enum": ["provider", "mode", "reporter"] }
+    },
+    "permissions": {
+      "type": "array", "uniqueItems": true,
+      "items": { "enum": ["read:listings", "read:profile", "read:tracker", "write:derived-reports", "network:https", "credentials:declared"] }
+    },
+    "network_hosts": {
+      "type": "array", "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[a-z0-9.-]+$" }
+    },
+    "credential_refs": {
+      "type": "array", "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[a-z0-9_-]+$" }
+    },
+    "config_schema": { "type": "string", "pattern": "^[^/].*" }
+  }
+}

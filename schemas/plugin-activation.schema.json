@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://home-ops.local/schemas/plugin-activation.schema.json",
+  "title": "HomeOps private plugin activation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "enabled"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "enabled": { "type": "array", "uniqueItems": true, "items": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" } },
+    "grants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["plugin_id", "permissions"],
+        "properties": {
+          "plugin_id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+          "permissions": { "type": "array", "uniqueItems": true, "items": { "enum": ["read:listings", "read:profile", "read:tracker", "write:derived-reports", "network:https", "credentials:declared"] } },
+          "credential_refs": { "type": "array", "uniqueItems": true, "items": { "type": "string", "pattern": "^[a-z0-9_-]+$" } }
+        }
+      }
+    }
+  }
+}

@@ -6,6 +6,7 @@
   "description": "Local-first property search and evaluation workflows",
   "scripts": {
     "compare": "node scripts/compare.mjs",
+    "compatibility": "node scripts/compatibility.mjs",
     "evaluate": "node scripts/evaluate.mjs",
     "financing": "node scripts/financing.mjs",
     "market": "node scripts/market.mjs",
@@ -13,6 +14,7 @@
     "tracker": "node scripts/tracker.mjs",
     "tracker:check": "node scripts/tracker-check.mjs",
     "valuation": "node scripts/valuation.mjs",
+    "plugin:check": "node scripts/plugin-check.mjs",
     "test": "node --test"
   },
   "engines": {

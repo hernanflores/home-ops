@@ -245,29 +245,37 @@ contact lenders or submit financing applications.
 
 ## Milestone 7: Regional and Plugin Expansion
 
-**Status:** In progress
+**Status:** Completed
 
 Make HomeOps straightforward to extend across LATAM while keeping optional
 integrations outside the core.
 
 ### Deliverables
 
-- [ ] Formalize the regional configuration schema and validation.
-- [ ] Add reference configurations for Buenos Aires, Sao Paulo, Santiago, CDMX,
+- [x] Formalize the regional configuration schema and validation.
+- [x] Add reference configurations for Buenos Aires, Sao Paulo, Santiago, CDMX,
       and Bogota.
-- [ ] Define an opt-in plugin manifest and permission model.
-- [ ] Keep credentials and private plugin configuration in ignored user paths.
-- [ ] Add compatibility checks for Agent Skills-capable CLIs.
-- [ ] Document how to add a region, provider, and plugin.
+- [x] Define an opt-in plugin manifest and permission model.
+- [x] Keep credentials and private plugin configuration in ignored user paths.
+- [x] Add compatibility checks for Agent Skills-capable CLIs.
+- [x] Document how to add a region, provider, and plugin.
 - [x] Add a reusable Agent Skill workflow for geographic portal discovery,
       policy review, provider implementation, and bounded live acceptance.
 
 ### Exit Criteria
 
-- [ ] A new region can be added without modifying core normalization logic.
-- [ ] Plugins are disabled by default and require explicit activation.
-- [ ] Core workflows remain usable without plugins, hosted services, or a
+- [x] A new region can be added without modifying core normalization logic.
+- [x] Plugins are disabled by default and require explicit activation.
+- [x] Core workflows remain usable without plugins, hosted services, or a
       proprietary model provider.
+
+Acceptance evidence: on 2026-08-24 the shared regional schema and validator
+were added, six LATAM reference regions passed validation, and scan, valuation,
+and financing validate their active region before use. The plugin manifest and
+private activation contracts enforce explicit enablement and least-privilege
+grants without loading third-party code. Compatibility checks report Codex,
+Claude Code, and OpenCode support with no warnings. The 84-test offline suite
+passed; the default plugin check found zero enabled plugins.
 
 ## Cross-Cutting Backlog
 

@@ -8,6 +8,7 @@ import { readMarketObservations } from "./lib/market-store.mjs";
 import { validateValuationConfigSemantics, valueListing } from "./lib/valuation.mjs";
 import { writeValuationReports } from "./lib/valuation-report.mjs";
 import { createListingValidator, createMarketObservationValidator, createSchemaValidator } from "./lib/validate.mjs";
+import { validateRegion } from "./lib/region.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const projectPath = (path) => isAbsolute(path) ? path : resolve(ROOT, path);
@@ -38,6 +39,7 @@ export async function runValuation(options = {}) {
   if (!subject) throw new Error(`Listing not found: ${options.listing}`);
   const { records: observations } = await readMarketObservations(observationsPath, validateObservation);
   const region = YAML.parse(await readFile(regionPath, "utf8"));
+  await validateRegion(region, ROOT);
   const config = options.config ? YAML.parse(await readFile(projectPath(options.config), "utf8")) : region.valuation;
   validateConfig(config);
   validateValuationConfigSemantics(config);

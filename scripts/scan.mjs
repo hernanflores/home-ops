@@ -9,6 +9,7 @@ import { assignDuplicateGroups } from "./lib/deduplicate.mjs";
 import { mergeInventory, readInventory, writeInventory } from "./lib/inventory.mjs";
 import { renderReport, writeReport } from "./lib/report.mjs";
 import { createListingValidator } from "./lib/validate.mjs";
+import { validateRegion } from "./lib/region.mjs";
 import { appendProviderRuns } from "./lib/provider-health.mjs";
 import { loadProviders } from "../providers/_registry.mjs";
 import { runProviders } from "../providers/_runner.mjs";
@@ -101,6 +102,7 @@ export async function runScan(options = {}) {
   const regionPath = projectPath(`regions/${regionId.replace(/^.*\//, "")}.yml`);
   if (!(await exists(regionPath))) throw new Error(`Unknown region: ${regionId}`);
   const region = await loadYaml(regionPath);
+  await validateRegion(region, ROOT);
   const sources = resolveSources(options, config);
   if (sources.length === 0) throw new Error("No sources configured. Use --input or add entries under sources in config/home-ops.yml");
 

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://home-ops.local/schemas/region.schema.json",
+  "title": "HomeOps regional configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "country_code", "country", "city", "currency", "area_unit", "locale", "freshness", "neighborhood_aliases", "valuation", "financing"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "country_code": { "type": "string", "pattern": "^[A-Z]{2}$" },
+    "country": { "type": "string", "minLength": 1 },
+    "city": { "type": "string", "minLength": 1 },
+    "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+    "area_unit": { "const": "m2" },
+    "locale": { "type": "string", "pattern": "^[a-z]{2}-[A-Z]{2}$" },
+    "freshness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stale_after_days"],
+      "properties": { "stale_after_days": { "type": "integer", "minimum": 0 } }
+    },
+    "neighborhood_aliases": {
+      "type": "object",
+      "additionalProperties": { "type": "string", "minLength": 1 }
+    },
+    "valuation": { "type": "object", "minProperties": 1 },
+    "financing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "currency", "payment_frequency", "assumptions"],
+      "properties": {
+        "schema_version": { "const": 1 },
+        "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+        "payment_frequency": { "const": "monthly" },
+        "assumptions": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    }
+  }
+}

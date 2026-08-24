@@ -58,7 +58,19 @@ async function setup() {
   const listings = entries.map((entry) => normalizeListing({ ...entry, _home_ops_source: { provider: "fixture", retrieved_at: NOW } }, REGION, NOW));
   await writeInventory(inventory, listings);
   await writeFile(config, YAML.stringify(CONFIG));
-  await writeFile(region, YAML.stringify({ id: "test" }));
+  await writeFile(region, YAML.stringify({
+    id: "test",
+    country_code: "UY",
+    country: "Uruguay",
+    city: "Montevideo",
+    currency: "USD",
+    area_unit: "m2",
+    locale: "es-UY",
+    freshness: { stale_after_days: 45 },
+    neighborhood_aliases: {},
+    valuation: CONFIG,
+    financing: { schema_version: 1, currency: "USD", payment_frequency: "monthly", assumptions: ["fixture"] }
+  }));
   return { directory, inventory, observations, reportsDir, config, region, listings };
 }
 

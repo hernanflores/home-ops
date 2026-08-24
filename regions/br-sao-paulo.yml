@@ -1,0 +1,31 @@
+id: br-sao-paulo
+country_code: BR
+country: Brazil
+city: São Paulo
+currency: BRL
+area_unit: m2
+locale: pt-BR
+freshness: { stale_after_days: 45 }
+neighborhood_aliases:
+  vila_madalena: Vila Madalena
+  pinheiros: Pinheiros
+  moema: Moema
+  jardins: Jardins
+valuation:
+  schema_version: 1
+  minimum_comparables: 5
+  quantiles: { low: 0.25, central: 0.5, high: 0.75 }
+  freshness_days: { rent: 90, sale: 180 }
+  allow_inferred: false
+  area_basis:
+    apartment: { primary: area_covered_m2, fallback: area_total_m2 }
+    house: { primary: area_covered_m2, fallback: null }
+    land: { primary: area_total_m2, fallback: null }
+    commercial: { primary: area_covered_m2, fallback: area_total_m2 }
+    other: { primary: area_total_m2, fallback: null }
+  confidence: { medium_count: 8, high_count: 15, maximum_iqr_to_median: 0.5 }
+financing:
+  schema_version: 1
+  currency: BRL
+  payment_frequency: monthly
+  assumptions: [User-supplied rates and costs are hypothetical and not lender offers.]

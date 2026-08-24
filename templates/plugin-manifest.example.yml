@@ -1,0 +1,11 @@
+manifest_version: 1
+id: example-provider
+name: Example HomeOps provider
+version: 1.0.0
+api_version: 1
+entrypoint: ./plugin.mjs
+capabilities: [provider]
+permissions: [read:listings, network:https]
+network_hosts: [agency.example]
+# Public manifests declare names only; never put credential values here.
+# credential_refs: [agency_api_key]

@@ -19,6 +19,7 @@ scripts in this repository.
 | `financing`, `loan`, `mortgage`, or financing scenarios | `modes/financing.md` |
 | `tracker`, `track`, `shortlist`, `status`, `compare`, or lifecycle updates | `modes/tracker.md` |
 | `add-source`, `configure-source`, a portal URL, or geographic portal discovery | `modes/add-source.md` |
+| `region`, `configure-region`, or plugin contract/compatibility checks | regional or plugin documentation and deterministic check scripts |
 | any other mode | State that it is not implemented yet; do not improvise persistence or calculations |
 
 Before executing a workflow:

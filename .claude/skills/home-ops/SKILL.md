@@ -1,6 +1,6 @@
 ---
 name: home-ops
-description: Use for HomeOps property portal onboarding, geographic source discovery, listing imports, scans, duplicate detection, freshness reports, evaluation, valuation, financing, or tracking.
+description: Use for HomeOps property portal onboarding, geographic source discovery, listing imports, scans, duplicate detection, freshness reports, evaluation, valuation, financing, regional configuration, plugins, or tracking.
 ---
 
 # HomeOps

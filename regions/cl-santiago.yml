@@ -1,0 +1,31 @@
+id: cl-santiago
+country_code: CL
+country: Chile
+city: Santiago
+currency: CLP
+area_unit: m2
+locale: es-CL
+freshness: { stale_after_days: 45 }
+neighborhood_aliases:
+  providencia: Providencia
+  las_condes: Las Condes
+  nunoa: Ñuñoa
+  santiago_centro: Santiago Centro
+valuation:
+  schema_version: 1
+  minimum_comparables: 5
+  quantiles: { low: 0.25, central: 0.5, high: 0.75 }
+  freshness_days: { rent: 90, sale: 180 }
+  allow_inferred: false
+  area_basis:
+    apartment: { primary: area_covered_m2, fallback: area_total_m2 }
+    house: { primary: area_covered_m2, fallback: null }
+    land: { primary: area_total_m2, fallback: null }
+    commercial: { primary: area_covered_m2, fallback: area_total_m2 }
+    other: { primary: area_total_m2, fallback: null }
+  confidence: { medium_count: 8, high_count: 15, maximum_iqr_to_median: 0.5 }
+financing:
+  schema_version: 1
+  currency: CLP
+  payment_frequency: monthly
+  assumptions: [User-supplied rates and costs are hypothetical and not lender offers.]

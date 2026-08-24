@@ -339,9 +339,30 @@ with `medium` or `high` confidence.
 ## Agent Usage
 
 The canonical Agent Skill is `.agents/skills/home-ops/SKILL.md`. OpenCode exposes
-`/home-ops`, `/home-ops-evaluate`, `/home-ops-valuation`, and
+`/home-ops`, `/home-ops-evaluate`, `/home-ops-valuation`,
+`/home-ops-financing`, and
 `/home-ops-add-source`; Claude Code and Codex route equivalent natural-language
 requests through the same workflows.
+
+## Regional and Plugin Extensions
+
+Regional files under `regions/` are schema-validated public configuration. The
+reference set includes Montevideo, Buenos Aires, São Paulo, Santiago, CDMX, and
+Bogotá. Adding a region means adding a validated YAML file; core normalization
+does not contain city-specific branches.
+
+Run the compatibility and plugin contract checks with:
+
+```bash
+npm run compatibility
+npm run plugin:check
+```
+
+Plugins are disabled by default. Public manifests declare capabilities,
+least-privilege permissions, allowed network hosts, and credential names only.
+Private activation belongs in ignored `config/plugins.yml`; HomeOps does not
+install or execute third-party plugin code as part of the core workflow. See
+[`plugins/README.md`](plugins/README.md) and the templates under `templates/`.
 
 ## Tests
 

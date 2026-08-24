@@ -20,6 +20,8 @@ The following paths contain versioned behavior and may be updated:
 - `.agents/`, `.claude/`, `.opencode/`, `AGENTS.md`, and `CODEX.md`.
 - `modes/`, `providers/`, `regions/`, `schemas/`, and `scripts/`.
 - `templates/`, `tests/`, and public documentation.
+- `plugins/`: public plugin manifests and contract documentation; plugin
+  activation and credential values remain private under `config/`.
 
 ## Canonical and derived data
 

@@ -6,6 +6,7 @@ import YAML from "yaml";
 import { calculateFinancing } from "./lib/financing.mjs";
 import { writeFinancingReports } from "./lib/financing-report.mjs";
 import { createSchemaValidator } from "./lib/validate.mjs";
+import { validateRegion } from "./lib/region.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const projectPath = (path) => isAbsolute(path) ? path : resolve(ROOT, path);
@@ -26,6 +27,7 @@ export async function runFinancing(options = {}) {
   const validateResult = await createSchemaValidator(resolve(ROOT, "schemas/financing-result.schema.json"), "financing result");
   const config = YAML.parse(await readFile(configPath, "utf8"));
   const region = YAML.parse(await readFile(regionPath, "utf8"));
+  await validateRegion(region, ROOT);
   validateConfig(config);
   const result = calculateFinancing(config, { region, now });
   validateResult(result);

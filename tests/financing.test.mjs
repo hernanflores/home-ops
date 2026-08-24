@@ -49,7 +49,7 @@ test("financing CLI validates config, emits reports, and does not mutate inputs"
   const region = join(directory, "region.yml");
   const reportsDir = join(directory, "reports");
   await writeFile(config, YAML.stringify({ schema_version: 1, currency: "USD", scenarios: [scenario(), scenario({ id: "shorter", label: "Shorter" })] }));
-  await writeFile(region, YAML.stringify(REGION));
+  await writeFile(region, await readFile(resolve("regions/uy-montevideo.yml"), "utf8"));
   const before = await readFile(config, "utf8");
   const result = await runFinancing({ config, region, reportsDir, now: NOW });
   assert.equal(result.result.generated_at, NOW);
@@ -64,6 +64,6 @@ test("invalid financing scenarios are rejected", async () => {
   const config = join(directory, "financing.yml");
   const region = join(directory, "region.yml");
   await writeFile(config, YAML.stringify({ schema_version: 1, currency: "USD", scenarios: [scenario({ down_payment_percent: 101 })] }));
-  await writeFile(region, YAML.stringify(REGION));
+  await writeFile(region, await readFile(resolve("regions/uy-montevideo.yml"), "utf8"));
   await assert.rejects(runFinancing({ config, region, now: NOW }), /<= 100|cannot exceed 100/);
 });
