@@ -1,37 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { mkdir, rename, rm, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
-
-function safe(value) {
-  return String(value ?? "unknown").replace(/[\r\n]+/g, " ").replace(/([\\|\[\]`*_<>])/g, "\\$1");
-}
-
-function safeUrl(value) {
-  try {
-    const url = new URL(value);
-    if (!["http:", "https:"].includes(url.protocol) || url.username || url.password) return null;
-    return url.href.replace(/[<>]/g, "");
-  } catch {
-    return null;
-  }
-}
-
-function title(listing) {
-  return listing.property.title ?? ([listing.property.property_type, listing.property.location.neighborhood].filter(Boolean).join(" in ") || listing.id);
-}
-
-function money(pricing) {
-  return pricing.price === null ? "unknown" : `${pricing.currency ?? "?"} ${pricing.price.toLocaleString("en-US")}`;
-}
-
-function openQuestions(record) {
-  const questions = new Map();
-  for (const event of record.events) {
-    if (event.type === "question_added") questions.set(event.id, event.payload.text);
-    if (event.type === "question_answered") questions.delete(event.payload.question_id);
-  }
-  return [...questions.entries()];
-}
+import { money, openQuestions, safe, safeUrl, title } from "./tracker-text.mjs";
 
 function recordRow(record, listing, evaluation, evaluationReport) {
   const url = safeUrl(listing.source.url);

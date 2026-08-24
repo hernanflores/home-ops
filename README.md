@@ -207,6 +207,7 @@ npm run tracker -- visit lst_0123456789abcdef --visited-at 2026-08-20T18:00:00Z 
 npm run tracker -- decision lst_0123456789abcdef --decision "Keep watching" --reason "Price uncertainty"
 npm run tracker:check
 npm run tracker -- report
+npm run tracker -- report --html
 ```
 
 The forward lifecycle is `watching → shortlisted → contacted → visited →
@@ -216,6 +217,15 @@ archived, and archive is terminal. Availability is tracked independently as
 Tracker synchronization is additive and idempotent: it starts missing
 non-discarded listings in `watching` but never changes or archives an existing
 record.
+
+`reports/tracker.html` is a derived, read-only reading copy of the same data for
+someone who will not open a terminal: listings grouped by fit and filterable,
+one place in detail, and a per-neighborhood price chart against the profile
+ceiling. It is written by `npm run tracker -- report --html`, is self-contained
+and offline (no network at runtime), states plainly that it is a snapshot
+holding private search data, and has no mutation path. Listings priced in a
+currency other than the profile's are kept in their own unranked group and out
+of the chart, because HomeOps never converts currencies.
 
 `reports/tracker.md` is a derived, one-row-per-listing table with lifecycle and
 availability state, location, price, evaluation status, score, coverage,

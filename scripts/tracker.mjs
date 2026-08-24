@@ -8,6 +8,7 @@ import { writeEvaluationReports } from "./lib/evaluation-report.mjs";
 import { readInventory } from "./lib/inventory.mjs";
 import { applyTrackerAction, assertTrackerIntegrity } from "./lib/tracker.mjs";
 import { renderTrackerReport, writeTrackerReport } from "./lib/tracker-report.mjs";
+import { buildTrackerView, renderTrackerView, writeTrackerView } from "./lib/tracker-view.mjs";
 import { readTracker, withTrackerLock, writeTracker } from "./lib/tracker-store.mjs";
 import { createListingValidator, createSchemaValidator } from "./lib/validate.mjs";
 
@@ -156,6 +157,17 @@ export async function runTrackerReport(options = {}) {
   if (inputIdentities.includes(reportIdentity)) {
     throw new Error("Tracker report output must not overwrite a canonical input or profile");
   }
+  const viewPath = options.html ? projectPath(options.htmlOutput ?? "reports/tracker.html") : null;
+  if (viewPath) {
+    await mkdir(dirname(viewPath), { recursive: true });
+    const viewIdentity = await filesystemIdentity(viewPath);
+    if (inputIdentities.includes(viewIdentity)) {
+      throw new Error("Tracker view output must not overwrite a canonical input or profile");
+    }
+    if (viewIdentity === reportIdentity) {
+      throw new Error("Tracker view output must not overwrite the tracker report");
+    }
+  }
   const listingById = new Map(current.listings.map((listing) => [listing.id, listing]));
   const evaluations = current.records.map((record) => evaluateListing(listingById.get(record.listing_id), profile, {
     now, profilePath, inventoryPath: current.inventoryPath
@@ -175,8 +187,23 @@ export async function runTrackerReport(options = {}) {
     evaluationReports
   });
   await writeTrackerReport(reportPath, report);
-  return { now, reportPath, records: current.records, evaluations };
+  if (viewPath) {
+    const view = buildTrackerView({
+      now,
+      trackerPath: current.trackerPath,
+      inventoryPath: current.inventoryPath,
+      records: current.records,
+      listings: current.listings,
+      evaluations,
+      evaluationReports,
+      profile
+    });
+    await writeTrackerView(viewPath, renderTrackerView(view));
+  }
+  return { now, reportPath, viewPath, records: current.records, evaluations };
 }
+
+const BOOLEAN_OPTIONS = new Set(["json", "html"]);
 
 function parse(argv) {
   const [command, possibleListing, ...rest] = argv;
@@ -186,7 +213,7 @@ function parse(argv) {
   const commandOptions = {
     start: [], transition: ["to"], availability: ["to"], note: ["text"], question: ["text"],
     answer: ["question", "text"], visit: ["visitedAt", "notes"], decision: ["decision", "reason"],
-    report: ["profile", "output"], sync: ["profile"]
+    report: ["profile", "output", "html", "htmlOutput"], sync: ["profile"]
   };
   if (!Object.hasOwn(commandOptions, command)) throw new Error(`Unknown tracker command: ${command}`);
   const allowed = new Set([...common, ...commandOptions[command]]);
@@ -195,10 +222,10 @@ function parse(argv) {
   if (!noListing) options.listing = possibleListing;
   for (let index = 0; index < args.length; index += 1) {
     const argument = args[index];
-    if (argument === "--json") options.json = true;
-    else if (argument.startsWith("--")) {
+    if (argument.startsWith("--")) {
       const key = argument.slice(2).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
       if (!allowed.has(key)) throw new Error(`Unknown option for ${command}: ${argument}`);
+      if (BOOLEAN_OPTIONS.has(key)) { options[key] = true; continue; }
       const value = args[++index];
       if (!value || value.startsWith("--")) throw new Error(`${argument} requires a value`);
       options[key] = value;
@@ -213,7 +240,7 @@ function usage() {
 Commands: start, transition, availability, note, question, answer, visit, decision, sync, report
 Common options: --tracker <path> --inventory <path> --now <ISO> --json
 Sync options: --profile <path>
-Report options: --profile <path> --output <path>
+Report options: --profile <path> --output <path> --html --html-output <path>
 `;
 }
 
@@ -227,7 +254,11 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
         ? await runTrackerSync(options)
         : await runTracker(options);
     if (options.json) return process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
-    if (options.command === "report") return process.stdout.write(`Tracker report: ${result.reportPath}\n`);
+    if (options.command === "report") {
+      process.stdout.write(`Tracker report: ${result.reportPath}\n`);
+      if (result.viewPath) process.stdout.write(`Tracker view: ${result.viewPath}\n`);
+      return;
+    }
     if (options.command === "sync") return process.stdout.write(`Tracker sync: ${result.added.length} added, ${result.candidates.length} non-discarded, ${result.records.length} tracked.\n`);
     process.stdout.write(`${result.record.listing_id}: ${result.record.state}, ${result.record.availability}; ${result.changed ? "updated" : "unchanged"}\n`);
   }).catch((error) => {
