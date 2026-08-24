@@ -1,0 +1,17 @@
+name: Provider or region request
+description: Suggest a source or geographic configuration.
+title: "[Extension]: "
+body:
+  - type: input
+    id: target
+    attributes:
+      label: Source or region
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Include public policy or terms links where relevant. Do not submit credentials or private exports.
+    validations:
+      required: true

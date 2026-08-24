@@ -1,16 +1,58 @@
 # HomeOps
 
-HomeOps is a local-first, AI-agnostic property search and evaluation workspace.
-It imports user-provided files and approved zero-key network sources, normalizes
-them into a shared contract, detects duplicate candidates, tracks changes and
-produces auditable scan reports, then evaluates canonical listings against a
-private profile with deterministic filters and scoring.
+[![Tests](https://github.com/hernanflores/home-ops/actions/workflows/test.yml/badge.svg)](https://github.com/hernanflores/home-ops/actions/workflows/test.yml)
+[![Node.js 22+](https://img.shields.io/badge/node.js-22%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+Local-first, AI-agnostic property search, evaluation, valuation, financing,
+and tracking for Codex, Claude Code, OpenCode, and compatible agent CLIs.
+
+HomeOps turns local listing files and approved sources into an auditable
+canonical inventory. It detects duplicates, preserves uncertainty, evaluates
+properties against a private profile, tracks shortlists, estimates transparent
+market ranges, and runs educational financing scenarios—without requiring a
+hosted backend, account, or LLM API key.
+
+## Why HomeOps?
+
+- **Private by default:** profiles, configuration, canonical data, and reports
+  remain in ignored local paths.
+- **Deterministic mechanics:** normalization, deduplication, scoring, valuation,
+  financing, and tracker integrity are handled by tested scripts.
+- **AI-agnostic:** reasoning workflows are portable Markdown modes shared across
+  agent-compatible CLIs.
+- **Human-in-the-loop:** HomeOps never contacts brokers, schedules visits,
+  submits offers, shares personal data, or applies for financing.
+- **Source-compliant:** providers use approved files, feeds, or bounded public
+  sources and never bypass access controls.
 
 Project milestones and their task checklists are tracked in
 [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 No account, hosted backend or LLM API key is required for the deterministic
 pipeline.
+
+## Quick Start
+
+```bash
+git clone https://github.com/hernanflores/home-ops.git
+cd home-ops
+npm install
+cp templates/config.example.yml config/home-ops.yml
+cp templates/profile.example.yml config/profile.yml
+npm test
+```
+
+Try the included sanitized listing fixture:
+
+```bash
+npm run scan -- --input templates/listings.example.json --provider example
+npm run evaluate -- --json
+```
+
+Generated inventory and reports stay under the private `data/` and `reports/`
+directories. The fixture is synthetic and uses `example.invalid`; it does not
+contact a real property portal.
 
 ## Requirements
 

@@ -279,11 +279,11 @@ passed; the default plugin check found zero enabled plugins.
 
 ## Cross-Cutting Backlog
 
-- [ ] Select and add an explicit open-source license.
-- [ ] Add continuous integration for `npm test`.
-- [ ] Add contribution and security-reporting documentation.
+- [x] Select and add an explicit open-source license.
+- [x] Add continuous integration for `npm test`.
+- [x] Add contribution and security-reporting documentation.
 - [ ] Define safe system-update behavior that never overwrites user-owned paths.
 - [ ] Add migration tests before changing the canonical listing schema.
 - [ ] Add privacy checks preventing personal data from entering public fixtures.
-- [ ] Keep `README.md`, `DATA_CONTRACT.md`, and this roadmap synchronized with
+- [x] Keep `README.md`, `DATA_CONTRACT.md`, and this roadmap synchronized with
       shipped behavior.

@@ -3,7 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Local-first property search and evaluation workflows",
+  "description": "Local-first, AI-agnostic property search, evaluation, valuation, financing, and tracking workflows",
+  "license": "MIT",
+  "repository": "github:hernanflores/home-ops",
+  "bugs": "https://github.com/hernanflores/home-ops/issues",
+  "homepage": "https://github.com/hernanflores/home-ops#readme",
+  "keywords": ["real-estate", "property-search", "local-first", "ai-agents", "codex", "claude-code", "opencode"],
   "scripts": {
     "compare": "node scripts/compare.mjs",
     "compatibility": "node scripts/compatibility.mjs",
