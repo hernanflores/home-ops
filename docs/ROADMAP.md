@@ -149,12 +149,14 @@ Track the lifecycle of interesting properties and compare shortlisted options.
 - [x] Generate shortlist and status reports from canonical files.
 - [x] Preserve history for status and price changes.
 - [x] Add untracked non-discarded evaluations to the tracker as watching.
+- [x] Render a derived read-only HTML reading copy of the tracker report.
 
 ### Exit Criteria
 
 - [x] Invalid state transitions are rejected.
 - [x] Rebuilding reports does not alter canonical data.
 - [x] Comparisons clearly distinguish unknown values from unfavorable values.
+- [x] The HTML view is read-only, self-contained, and offline at runtime.
 
 Acceptance evidence: on 2026-08-20 the event-backed tracker added validated
 forward-only lifecycle transitions, independent manual availability, immutable
@@ -165,6 +167,25 @@ Canonical immutability, unknown handling, duplicate warnings, Markdown safety,
 concurrent writes, stale-lock recovery and terminal archive behavior are covered
 by the offline suite. Full evaluations also perform an additive, idempotent
 tracker synchronization while preserving every existing lifecycle state.
+
+On 2026-08-24 a derived read-only HTML tracker view was added at
+`reports/tracker.html`, written by `npm run tracker -- report --html` with an
+optional `--html-output` path. It renders three screens from the same
+evaluation pass as the Markdown report: listings grouped by fit and
+filterable, one place in detail, and a per-neighborhood price chart against
+the profile ceiling. The page is server-rendered so it works with JavaScript
+disabled, is self-contained, opens from `file://`, makes no network request at
+runtime, and carries a print stylesheet. Deterministic warning templates are
+translated into plain language through a closed vocabulary of six red-flag and
+four missing-data shapes; unmatched strings fall through verbatim with the
+original text preserved in a tooltip. Score, coverage, eligibility, and field
+paths are deliberately withheld from the reader. Listings priced in a currency
+other than the profile's form an unranked trailing group excluded from the
+chart, because HomeOps never converts currencies. The view has no mutation
+path, both artifacts come from one evaluation pass so their timestamps cannot
+drift, and the output path reuses the existing filesystem-identity guard so it
+cannot overwrite a canonical input, a profile, or the Markdown report. The
+offline suite grew to 98 tests.
 
 ## Milestone 5: Market Valuation
 

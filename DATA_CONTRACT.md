@@ -22,6 +22,8 @@ The following paths contain versioned behavior and may be updated:
 - `templates/`, `tests/`, and public documentation.
 - `plugins/`: public plugin manifests and contract documentation; plugin
   activation and credential values remain private under `config/`.
+- `site/`: the public project site, which contains no user data.
+- `.github/`: continuous integration and site deployment workflows.
 
 ## Canonical and derived data
 
