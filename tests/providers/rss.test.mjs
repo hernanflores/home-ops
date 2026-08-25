@@ -87,7 +87,7 @@ test("RSS provider scans end to end and reuses a fresh private cache", async () 
   assert.equal(second.diagnostics[0].cache_hits, 1);
   assert.equal(second.diagnostics[0].requests, 0);
   const report = await readFile(second.reportPath, "utf8");
-  assert.match(report, /\| agency-feed \| rss \| success \| 1 \| 0 \| 1 \| 0 \|/);
+  assert.match(report, /\| agency-feed \| rss \| success \| 1 \| 0 \| 0 \| 1 \| 0 \|/);
 });
 
 test("a failed network source does not discard a successful local source", async () => {

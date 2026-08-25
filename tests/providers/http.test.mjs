@@ -168,3 +168,65 @@ test("provider errors redact bearer tokens and secret query values", () => {
     "Basic [REDACTED] failed?client_secret=[REDACTED]&x-amz-signature=[REDACTED]"
   );
 });
+
+test("HTTP transport follows a same-origin redirect and keeps the guards", async () => {
+  const cacheDir = await mkdtemp(join(tmpdir(), "home-ops-http-"));
+  const requested = [];
+  const context = createHttpContext({
+    source: { cache: false, min_interval_ms: 0 },
+    sourceId: "redirect-source",
+    cacheDir,
+    now: "2026-08-19T12:00:00.000Z",
+    lookup: async () => [{ address: "93.184.216.34", family: 4 }],
+    fetchImpl: async (url, options) => {
+      requested.push(String(url));
+      assert.equal(options.redirect, "manual");
+      assert.ok(options.dispatcher, "every hop must use a DNS-pinned dispatcher");
+      if (requested.length === 1) {
+        return new Response("", { status: 301, headers: { location: "/listing/renamed" } });
+      }
+      return new Response("ok", { status: 200 });
+    }
+  });
+
+  assert.equal(await context.fetchText("https://feed.example.test/listing/stale"), "ok");
+  assert.deepEqual(requested, [
+    "https://feed.example.test/listing/stale",
+    "https://feed.example.test/listing/renamed"
+  ]);
+  assert.equal(context.stats.requests, 2);
+  assert.equal(context.stats.retries, 0);
+});
+
+test("HTTP transport refuses cross-origin and unbounded redirect chains", async () => {
+  const cacheDir = await mkdtemp(join(tmpdir(), "home-ops-http-"));
+  const redirectingContext = (location) => createHttpContext({
+    source: { cache: false, min_interval_ms: 0 },
+    sourceId: "redirect-source",
+    cacheDir,
+    now: "2026-08-19T12:00:00.000Z",
+    lookup: async () => [{ address: "93.184.216.34", family: 4 }],
+    fetchImpl: async () => new Response("", { status: 302, headers: { location: location() } })
+  });
+
+  await assert.rejects(
+    redirectingContext(() => "https://elsewhere.example.test/listing").fetchText("https://feed.example.test/listing"),
+    /Cross-origin redirect is not followed/
+  );
+  await assert.rejects(
+    redirectingContext(() => "http://feed.example.test/listing").fetchText("https://feed.example.test/listing"),
+    /Redirect target is not allowed/
+  );
+  await assert.rejects(
+    redirectingContext(() => "https://127.0.0.1/listing").fetchText("https://feed.example.test/listing"),
+    /Redirect target is not allowed/
+  );
+
+  let hops = 0;
+  const looping = redirectingContext(() => `/listing/${(hops += 1)}`);
+  await assert.rejects(
+    looping.fetchText("https://feed.example.test/listing"),
+    /Exceeded 2 redirects/
+  );
+  assert.equal(looping.stats.requests, 3);
+});

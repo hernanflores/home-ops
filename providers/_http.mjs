@@ -15,6 +15,8 @@ import {
 } from "./_errors.mjs";
 
 const USER_AGENT = "home-ops/0.2 local-first-property-scanner";
+const MAX_REDIRECTS = 2;
+const REDIRECT_STATUS = new Set([301, 302, 303, 307, 308]);
 const SECRET_QUERY = /^(?:access_token|api_?key|token|key|client_secret|signature|sig|x-amz-(?:credential|signature|security-token))$/i;
 
 function isPrivateAddress(value) {
@@ -35,6 +37,30 @@ function isPrivateAddress(value) {
       || address.startsWith("ff") || address.startsWith("2001:db8:");
   }
   return false;
+}
+
+// A redirect target must clear every guard the original URL cleared, and must stay
+// on the origin the source was configured for: following a cross-origin hop would
+// escape the DNS pinning and private-address checks applied above.
+function assertSameOriginRedirect(origin, currentUrl, location) {
+  let target;
+  try {
+    target = new URL(location, currentUrl);
+  } catch {
+    throw new ProviderAccessError(`Redirect target is not a valid URL: ${location}`);
+  }
+  let validated;
+  try {
+    validated = assertPublicHttpsUrl(target.href);
+  } catch (error) {
+    throw new ProviderAccessError(`Redirect target is not allowed: ${error.message}`);
+  }
+  if (validated.origin !== origin.origin) {
+    throw new ProviderAccessError(
+      `Cross-origin redirect is not followed: ${origin.origin} -> ${validated.origin}`
+    );
+  }
+  return validated;
 }
 
 export function assertPublicHttpsUrl(value) {
@@ -262,76 +288,102 @@ export function createHttpContext(options) {
     if (cached?.last_modified) conditional["if-modified-since"] = cached.last_modified;
 
     for (let attempt = 0; attempt <= retries; attempt += 1) {
-      const lookupHost = url.hostname.replace(/^\[|\]$/g, "");
-      const resolved = await withTimeout(
-        (options.lookup ?? dnsLookup)(lookupHost, { all: true, verbatim: true }),
-        timeoutMs,
-        "DNS lookup timed out"
-      );
-      const addresses = Array.isArray(resolved) ? resolved : [resolved];
-      if (addresses.length === 0 || addresses.some((entry) => isPrivateAddress(entry.address))) {
-        throw new ProviderAccessError(`Source hostname resolves to a private or unavailable address: ${url.hostname}`);
-      }
-      if (minIntervalMs > 0) {
-        const wait = await withFileLock(rateLockPath(url.hostname), timeoutMs, sleep, async () => {
-          const current = clock();
-          const persisted = await readCache(ratePath(url.hostname));
-          const nextAllowed = Math.max(
-            limiter.get(url.hostname) ?? 0,
-            new Date(persisted?.next_request_at ?? 0).valueOf() || 0
-          );
-          const delay = Math.max(0, nextAllowed - current);
-          const reserved = current + delay + minIntervalMs;
-          limiter.set(url.hostname, reserved);
-          await writeCache(ratePath(url.hostname), { next_request_at: new Date(reserved).toISOString() });
-          return delay;
-        });
-        if (wait > 0) await sleep(wait);
-      }
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), timeoutMs);
-      const dispatcher = createPinnedDispatcher(addresses);
       try {
-        stats.requests += 1;
-        const response = await fetchImpl(url, {
-          method,
-          body: requestOptions.body,
-          redirect: "error",
-          headers: {
-            "user-agent": USER_AGENT,
-            ...requestedHeaders,
-            ...conditional,
-          },
-          dispatcher,
-          signal: controller.signal
-        });
-        if (response.status === 304 && cached) {
-          stats.cache_hits += 1;
-          const refreshed = {
-            ...cached,
-            fetched_at: options.now,
-            expires_at: new Date(nowMs + ttlMs).toISOString()
-          };
-          if (requestCacheEnabled) await writeCache(cachePath, refreshed);
-          return cached.body;
+        let currentUrl = url;
+        let currentMethod = method;
+        let currentBody = requestOptions.body;
+        for (let hop = 0; ; hop += 1) {
+          const lookupHost = currentUrl.hostname.replace(/^\[|\]$/g, "");
+          const resolved = await withTimeout(
+            (options.lookup ?? dnsLookup)(lookupHost, { all: true, verbatim: true }),
+            timeoutMs,
+            "DNS lookup timed out"
+          );
+          const addresses = Array.isArray(resolved) ? resolved : [resolved];
+          if (addresses.length === 0 || addresses.some((entry) => isPrivateAddress(entry.address))) {
+            throw new ProviderAccessError(`Source hostname resolves to a private or unavailable address: ${currentUrl.hostname}`);
+          }
+          if (minIntervalMs > 0) {
+            const wait = await withFileLock(rateLockPath(currentUrl.hostname), timeoutMs, sleep, async () => {
+              const current = clock();
+              const persisted = await readCache(ratePath(currentUrl.hostname));
+              const nextAllowed = Math.max(
+                limiter.get(currentUrl.hostname) ?? 0,
+                new Date(persisted?.next_request_at ?? 0).valueOf() || 0
+              );
+              const delay = Math.max(0, nextAllowed - current);
+              const reserved = current + delay + minIntervalMs;
+              limiter.set(currentUrl.hostname, reserved);
+              await writeCache(ratePath(currentUrl.hostname), { next_request_at: new Date(reserved).toISOString() });
+              return delay;
+            });
+            if (wait > 0) await sleep(wait);
+          }
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), timeoutMs);
+          const dispatcher = createPinnedDispatcher(addresses);
+          let redirectTarget = null;
+          try {
+            stats.requests += 1;
+            const response = await fetchImpl(currentUrl, {
+              method: currentMethod,
+              body: currentBody,
+              redirect: "manual",
+              headers: {
+                "user-agent": USER_AGENT,
+                ...requestedHeaders,
+                ...conditional,
+              },
+              dispatcher,
+              signal: controller.signal
+            });
+            if (REDIRECT_STATUS.has(response.status)) {
+              const location = response.headers.get("location");
+              await response.arrayBuffer().catch(() => {});
+              if (!location) {
+                throw new ProviderAccessError(`Redirect without a Location header: HTTP ${response.status}`);
+              }
+              if (hop >= MAX_REDIRECTS) {
+                throw new ProviderAccessError(`Exceeded ${MAX_REDIRECTS} redirects for ${url.origin}${url.pathname}`);
+              }
+              redirectTarget = assertSameOriginRedirect(url, currentUrl, location);
+              if (response.status === 303 && currentMethod !== "GET" && currentMethod !== "HEAD") {
+                currentMethod = "GET";
+                currentBody = undefined;
+              }
+            } else if (response.status === 304 && cached) {
+              stats.cache_hits += 1;
+              const refreshed = {
+                ...cached,
+                fetched_at: options.now,
+                expires_at: new Date(nowMs + ttlMs).toISOString()
+              };
+              if (requestCacheEnabled) await writeCache(cachePath, refreshed);
+              return cached.body;
+            } else if (!response.ok) {
+              const responseBody = await readResponseBody(response, Math.min(maxResponseBytes, 64_000)).catch(() => "");
+              throw responseError(response, response.headers.get("retry-after"), responseBody);
+            } else {
+              const body = await readResponseBody(response, maxResponseBytes);
+              const responseTtlMs = responseTtl(response, ttlMs);
+              if (requestCacheEnabled && method === "GET" && responseTtlMs !== null) {
+                await writeCache(cachePath, {
+                  url: currentUrl.href,
+                  fetched_at: options.now,
+                  expires_at: new Date(nowMs + responseTtlMs).toISOString(),
+                  etag: response.headers.get("etag"),
+                  last_modified: response.headers.get("last-modified"),
+                  body
+                });
+              }
+              return body;
+            }
+          } finally {
+            clearTimeout(timer);
+            await dispatcher.close();
+          }
+          currentUrl = redirectTarget;
         }
-        if (!response.ok) {
-          const responseBody = await readResponseBody(response, Math.min(maxResponseBytes, 64_000)).catch(() => "");
-          throw responseError(response, response.headers.get("retry-after"), responseBody);
-        }
-        const body = await readResponseBody(response, maxResponseBytes);
-        const responseTtlMs = responseTtl(response, ttlMs);
-        if (requestCacheEnabled && method === "GET" && responseTtlMs !== null) {
-          await writeCache(cachePath, {
-            url: url.href,
-            fetched_at: options.now,
-            expires_at: new Date(nowMs + responseTtlMs).toISOString(),
-            etag: response.headers.get("etag"),
-            last_modified: response.headers.get("last-modified"),
-            body
-          });
-        }
-        return body;
       } catch (error) {
         const classified = classifyProviderError(error);
         if (!classified.transient || attempt === retries) throw classified;
@@ -340,9 +392,6 @@ export function createHttpContext(options) {
         if (retryAfter !== null && retryAfter > maxRetryAfterMs) throw classified;
         const delay = retryAfter ?? Math.min(8_000, 500 * (2 ** attempt) + random() * 250);
         await sleep(delay);
-      } finally {
-        clearTimeout(timer);
-        await dispatcher.close();
       }
     }
     throw new ProviderNetworkError("Request failed after retries");

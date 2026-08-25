@@ -1,6 +1,6 @@
 import { XMLParser, XMLValidator } from "fast-xml-parser";
 import { parse, parseFragment } from "parse5";
-import { ProviderConfigError, ProviderParseError } from "./_errors.mjs";
+import { ProviderConfigError, ProviderParseError, sanitizeErrorMessage } from "./_errors.mjs";
 import { assertPublicHttpsUrl } from "./_http.mjs";
 import { validateCompliance } from "./_compliance.mjs";
 
@@ -223,12 +223,25 @@ export default {
     const sitemap = await context.fetchText(sitemapUrl, { accept: "application/xml, text/xml" });
     const entries = parseInfoCasasSitemap(sitemap).slice(0, maxListings);
     const listings = [];
+    const warnings = [];
+    let firstFailure = null;
+    // The sitemap advertises URLs that individually rot: a renamed listing keeps its
+    // id but changes slug, and a withdrawn one stops resolving. Isolate each entry so
+    // one dead URL costs one listing instead of the whole run.
     for (const entry of entries) {
-      const html = await context.fetchText(entry.url, { accept: "text/html", cache: false });
-      const listing = parseInfoCasasListing(html, source, context.now, entry.url);
-      listing._provider_payload.sitemap_lastmod = entry.lastmod;
-      listings.push(listing);
+      try {
+        const html = await context.fetchText(entry.url, { accept: "text/html", cache: false });
+        const listing = parseInfoCasasListing(html, source, context.now, entry.url);
+        listing._provider_payload.sitemap_lastmod = entry.lastmod;
+        listings.push(listing);
+      } catch (error) {
+        firstFailure ??= error;
+        warnings.push(`Skipped ${entry.url}: ${sanitizeErrorMessage(error.message)}`);
+      }
     }
-    return { listings };
+    // Every entry failing is a systemic problem (a block, a rate limit, a layout
+    // change), not a set of individually rotten URLs. Surface it as a source failure.
+    if (entries.length > 0 && listings.length === 0) throw firstFailure;
+    return { listings, warnings };
   }
 };
