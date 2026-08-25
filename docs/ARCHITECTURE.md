@@ -22,11 +22,12 @@ user-owned files. Markdown and JSON reports under `reports/` are derived and
 can be rebuilt. The AI layer consumes deterministic script output; it does not
 reimplement calculations in prose.
 
-Derived reports render in Markdown and JSON. The tracker additionally
-renders a read-only HTML reading copy at `reports/tracker.html` for someone
+Derived reports render in Markdown and JSON. The tracker can additionally
+render a read-only HTML reading copy at `reports/tracker.html` for someone
 who will not open a terminal. It is a rendering of the same deterministic
 output as `reports/tracker.md`, produced in the same evaluation pass, and is
 never a second source of truth.
+The HTML copy is generated when the tracker runs with `--html`.
 
 ## Boundaries
 
