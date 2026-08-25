@@ -339,7 +339,7 @@ export function createHttpContext(options) {
             });
             if (REDIRECT_STATUS.has(response.status)) {
               const location = response.headers.get("location");
-              await response.arrayBuffer().catch(() => {});
+              await response.body?.cancel().catch(() => {});
               if (!location) {
                 throw new ProviderAccessError(`Redirect without a Location header: HTTP ${response.status}`);
               }
