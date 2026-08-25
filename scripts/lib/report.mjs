@@ -51,16 +51,21 @@ export function renderReport({ now, region, touched, duplicateGroups, diagnostic
 
   const healthText = diagnostics.length === 0
     ? "_No source diagnostics._\n"
-    : `| Source | Provider | Status | Listings | Requests | Cache hits | Retries | Error |\n|---|---|---|---:|---:|---:|---:|---|\n${diagnostics.map((diagnostic) => `| ${[
+    : `| Source | Provider | Status | Listings | Skipped | Requests | Cache hits | Retries | Error |\n|---|---|---|---:|---:|---:|---:|---:|---|\n${diagnostics.map((diagnostic) => `| ${[
       diagnostic.id,
       diagnostic.provider,
       diagnostic.status,
       diagnostic.count,
+      diagnostic.skipped ?? 0,
       diagnostic.requests,
       diagnostic.cache_hits,
       diagnostic.retries,
       diagnostic.error ? `${diagnostic.error.code}: ${diagnostic.error.message}` : ""
     ].map(escapeCell).join(" | ")} |`).join("\n")}\n`;
+
+  const skippedEntries = diagnostics.flatMap((diagnostic) =>
+    (diagnostic.warnings ?? []).map((warning) => `- **${escapeCell(diagnostic.id)}**: ${escapeCell(warning)}`));
+  const skippedText = skippedEntries.length === 0 ? "_None._\n" : `${skippedEntries.join("\n")}\n`;
 
   return `# HomeOps Scan Report
 
@@ -75,6 +80,9 @@ export function renderReport({ now, region, touched, duplicateGroups, diagnostic
 ## Source Health
 
 ${healthText}
+## Skipped Entries
+
+${skippedText}
 ## New Listings
 
 ${listingTable(fresh)}

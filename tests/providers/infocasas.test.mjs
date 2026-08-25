@@ -140,3 +140,34 @@ test("InfoCasas rejects unexpected hosts and paths", () => {
   assert.throws(() => parseInfoCasasSitemap(badHost), /must use https:\/\/www\.infocasas\.com\.uy/);
   assert.throws(() => parseInfoCasasListing(listingHtml(200, { link: "/venta/casas/montevideo/200" }), SOURCE, "2026-08-19T15:00:00.000Z"), /path is not allowed/);
 });
+
+test("InfoCasas isolates a single unreachable listing", async () => {
+  const requests = [];
+  const result = await infocasas.fetch({ ...SOURCE, max_listings: 2 }, {
+    now: "2026-08-19T15:00:00.000Z",
+    async fetchText(url) {
+      requests.push(url);
+      if (requests.length === 1) return SITEMAP;
+      if (requests.length === 2) throw new Error("unexpected redirect");
+      return listingHtml(100, { link: "/apartamento-viejo/100" });
+    }
+  });
+
+  assert.equal(result.listings.length, 1);
+  assert.equal(result.warnings.length, 1);
+  assert.match(result.warnings[0], /apartamento-nuevo\/200/);
+  assert.match(result.warnings[0], /unexpected redirect/);
+});
+
+test("InfoCasas reports a systemic failure instead of skipping every listing", async () => {
+  await assert.rejects(
+    infocasas.fetch({ ...SOURCE, max_listings: 2 }, {
+      now: "2026-08-19T15:00:00.000Z",
+      async fetchText(url) {
+        if (url.endsWith(".xml")) return SITEMAP;
+        throw new Error("HTTP 403 Forbidden");
+      }
+    }),
+    /HTTP 403 Forbidden/
+  );
+});

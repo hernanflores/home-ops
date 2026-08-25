@@ -63,13 +63,16 @@ export async function runProviders(sources, options) {
         throw new ProviderConfigError(`${provider.id}: fetch() must return { listings: [] }`);
       }
       listings.push(...result.listings);
+      const warnings = Array.isArray(result.warnings) ? result.warnings.map(String) : [];
       const diagnostic = {
         id,
         provider: provider.id,
         status: "success",
         count: result.listings.length,
         duration_ms: Date.now() - started,
-        ...http.stats
+        ...http.stats,
+        skipped: warnings.length,
+        ...(warnings.length > 0 ? { warnings } : {})
       };
       diagnostics.push(diagnostic);
       batches.push({ source, provider: provider.id, listings: result.listings, diagnostic });
